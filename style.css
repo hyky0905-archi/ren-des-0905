@@ -1,0 +1,154 @@
+:root{
+  --bg:#0b0d12;
+  --panel:#111522;
+  --panel2:#0f1320;
+  --text:#e8eaf0;
+  --muted:#a7adbc;
+  --line:rgba(255,255,255,.08);
+  --blue:#3b82f6;
+  --shadow: 0 10px 35px rgba(0,0,0,.45);
+  --radius: 16px;
+  --max: 1160px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; background:var(--bg); color:var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif; }
+.wrap{ max-width:var(--max); margin:0 auto; padding: 0 18px; }
+
+.header{
+  position: sticky; top:0; z-index:10;
+  backdrop-filter: blur(10px);
+  background: rgba(11,13,18,.65);
+  border-bottom: 1px solid var(--line);
+}
+.header__inner{ display:flex; gap:14px; align-items:center; padding: 16px 0; }
+.brand__title{ font-weight:700; letter-spacing:.04em; }
+.brand__sub{ color:var(--muted); font-size:12px; margin-top:2px; }
+
+.search{
+  margin-left:auto;
+  width:min(520px, 52vw);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 999px;
+  outline:none;
+}
+.search:focus{ border-color: rgba(59,130,246,.6); box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+
+.filters{ padding: 18px 0 8px; }
+.filters__row{ display:flex; gap:12px; align-items:flex-start; }
+.label{ width:48px; color:var(--muted); padding-top:6px; font-size:12px; letter-spacing:.1em; }
+
+.chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.chip{
+  background: transparent;
+  border:1px solid var(--line);
+  color: var(--muted);
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor:pointer;
+}
+.chip--active{
+  border-color: rgba(59,130,246,.65);
+  color: var(--text);
+  background: rgba(59,130,246,.12);
+}
+
+.grid{
+  padding: 10px 0 40px;
+  display:grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 14px;
+}
+.card{
+  grid-column: span 4;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow:hidden;
+  background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+  box-shadow: var(--shadow);
+}
+@media (max-width: 980px){ .card{ grid-column: span 6; } }
+@media (max-width: 620px){ .card{ grid-column: span 12; } }
+
+.card__hit{ all: unset; display:block; cursor:pointer; }
+.thumb{ aspect-ratio: 4/3; background:#0a0c12; overflow:hidden; }
+.thumb img{ width:100%; height:100%; object-fit:cover; display:block; transform: scale(1.01); }
+
+.card__body{ padding: 14px 14px 16px; }
+.kicker{ color: var(--muted); font-size:12px; letter-spacing:.08em; }
+.card__title{ margin-top:6px; font-size:16px; font-weight:650; line-height:1.3; }
+.card__sub{ margin-top:6px; color: var(--muted); font-size:13px; }
+
+.tagRow{ margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; }
+.tag{
+  display:inline-block;
+  font-size:11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.tag--big{ font-size:12px; padding:6px 10px; }
+
+.footer{
+  padding: 18px 0 40px;
+  display:flex;
+  justify-content:space-between;
+  border-top:1px solid var(--line);
+  color: var(--muted);
+  font-size:12px;
+}
+
+.modal{
+  width: min(1100px, 96vw);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 0;
+  background: rgba(15,19,32,.92);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.modal::backdrop{ background: rgba(0,0,0,.62); }
+.modal__inner{ padding: 0; margin:0; }
+.modal__close{
+  position:absolute; right: 14px; top: 10px;
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(17,21,34,.8);
+  color: var(--text);
+  font-size: 22px;
+  cursor:pointer;
+}
+
+.modal__body{ display:grid; grid-template-columns: 1.6fr 1fr; gap: 0; }
+@media (max-width: 900px){ .modal__body{ grid-template-columns: 1fr; } }
+
+.modal__img{
+  width: 100%;
+  height: 100%;
+  max-height: 78vh;
+  object-fit: cover;
+  display:block;
+  border-right: 1px solid var(--line);
+}
+@media (max-width: 900px){ .modal__img{ border-right:none; border-bottom:1px solid var(--line);} }
+
+.modal__meta{ padding: 18px 18px 22px; }
+.h1{ margin: 8px 0 14px; font-size: 22px; line-height: 1.2; color: #dbe7ff; }
+
+.metaLine{ margin: 10px 0; display:flex; gap:10px; align-items:flex-start; }
+.metaKey{
+  width: 70px;
+  color: var(--blue);
+  font-size: 12px;
+  letter-spacing:.12em;
+  padding-top:2px;
+}
+.tagList{ margin-top: 14px; display:flex; flex-wrap:wrap; gap:8px; }
+
+.error{ padding: 16px; border: 1px solid rgba(255,0,0,.35); border-radius: 12px; }

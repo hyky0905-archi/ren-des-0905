@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Render Archive</title>
+
+  <!-- 実質非公開（検索に出さない） -->
+  <meta name="robots" content="noindex,nofollow" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <header class="header">
+    <div class="wrap header__inner">
+      <div class="brand">
+        <div class="brand__title">Render Archive</div>
+        <div class="brand__sub">建築パースの静的アーカイブ</div>
+      </div>
+
+      <input id="q" class="search" type="search" placeholder="検索（タイトル / 用途 / タグ）" />
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="filters">
+      <div class="filters__row">
+        <div class="label">タグ</div>
+        <div id="tagChips" class="chips"></div>
+      </div>
+    </section>
+
+    <section id="grid" class="grid" aria-live="polite"></section>
+
+    <footer class="footer">
+      <div id="count"></div>
+      <div class="muted">更新：<span id="updated"></span></div>
+    </footer>
+  </main>
+
+  <!-- Modal -->
+  <dialog id="modal" class="modal">
+    <form method="dialog" class="modal__inner">
+      <button class="modal__close" aria-label="閉じる">×</button>
+
+      <div class="modal__body">
+        <img id="mImg" class="modal__img" alt="" />
+
+        <div class="modal__meta">
+          <div class="kicker" id="mDate"></div>
+          <h1 class="h1" id="mTitle"></h1>
+
+          <div class="metaLine"><span class="metaKey">用途</span><span id="mUse"></span></div>
+          <div class="metaLine"><span class="metaKey">プロジェクト</span><span id="mProject"></span></div>
+          <div class="metaLine"><span class="metaKey">コンセプト</span><span id="mConcept"></span></div>
+
+          <div class="tagList" id="mTags"></div>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const state = {
+      data: [],
+      tags: new Set(),
+      activeTag: null,
+      q: ""
+    };
+
+    const el = {
+      grid: document.getElementById("grid"),
+      tagChips: document.getElementById("tagChips"),
+      q: document.getElementById("q"),
+      count: document.getElementById("count"),
+      updated: document.getElementById("updated"),
+
+      modal: document.getElementById("modal"),
+      mImg: document.getElementById("mImg"),
+      mDate: document.getElementById("mDate"),
+      mTitle: document.getElementById("mTitle"),
+      mUse: document.getElementById("mUse"),
+      mProject: document.getElementById("mProject"),
+      mConcept: document.getElementById("mConcept"),
+      mTags: document.getElementById("mTags"),
+    };
+
+    function norm(s){ return (s ?? "").toString().toLowerCase(); }
+    function escapeHtml(s){
+      return (s??"").toString().replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    }
+
+    function match(item){
+      if (state.activeTag && !(item.tags||[]).includes(state.activeTag)) return false;
+      if (!state.q) return true;
+
+      const hay = [
+        item.title, item.date, item.use, item.project, item.concept, ...(item.tags||[])
+      ].map(norm).join(" ");
+
+      return hay.includes(norm(state.q));
+    }
+
+    function chip(text, active, onClick){
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (active ? " chip--active" : "");
+      b.textContent = text;
+      b.addEventListener("click", onClick);
+      return b;
+    }
+
+    function renderTags(){
+      const tags = [...state.tags].sort((a,b)=>a.localeCompare(b,'ja'));
+      el.tagChips.innerHTML = "";
+
+      el.tagChips.appendChild(
+        chip("すべて", state.activeTag===null, ()=>{
+          state.activeTag = null;
+          render();
+        })
+      );
+
+      tags.forEach(t=>{
+        el.tagChips.appendChild(
+          chip(t, state.activeTag===t, ()=>{
+            state.activeTag = (state.activeTag===t) ? null : t;
+            render();
+          })
+        );
+      });
+    }
+
+    function openModal(item){
+      el.mImg.src = item.image;
+      el.mImg.alt = item.title || "";
+
+      el.mDate.textContent = item.date || "";
+      el.mTitle.textContent = item.title || "";
+      el.mUse.textContent = item.use || "";
+      el.mProject.textContent = item.project || "";
+      el.mConcept.textContent = item.concept || "";
+
+      el.mTags.innerHTML = (item.tags||[])
+        .map(t=>`<span class="tag tag--big">${escapeHtml(t)}</span>`)
+        .join("");
+
+      el.modal.showModal();
+    }
+
+    function card(item){
+      const a = document.createElement("article");
+      a.className = "card";
+
+      a.innerHTML = `
+        <button class="card__hit" type="button" aria-label="${escapeHtml(item.title)}を開く">
+          <div class="thumb">
+            <img loading="lazy" src="${item.image}" alt="${escapeHtml(item.title)}" />
+          </div>
+          <div class="card__body">
+            <div class="kicker">${escapeHtml(item.date || "")}</div>
+            <div class="card__title">${escapeHtml(item.title || "")}</div>
+            <div class="card__sub">${escapeHtml(item.use || "")}</div>
+            <div class="tagRow">
+              ${(item.tags||[]).slice(0,4).map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("")}
+            </div>
+          </div>
+        </button>
+      `;
+
+      a.querySelector(".card__hit").addEventListener("click", ()=>openModal(item));
+      return a;
+    }
+
+    function render(){
+      const items = state.data.filter(match);
+
+      el.grid.innerHTML = "";
+      items.forEach(i=>el.grid.appendChild(card(i)));
+
+      el.count.textContent = `${items.length} / ${state.data.length} 件`;
+      el.updated.textContent = new Date().toLocaleString('ja-JP');
+    }
+
+    async function init(){
+      try{
+        // GitHub Pages前提：data.jsonをfetchしてOK
+        const res = await fetch("data.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`data.json load failed: ${res.status}`);
+        const json = await res.json();
+
+        state.data = (json.items || []).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+        state.tags = new Set(state.data.flatMap(x=>x.tags||[]));
+
+        renderTags();
+        render();
+      }catch(err){
+        el.grid.innerHTML = `<div class="error">data.json が読めませんでした：${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    el.q.addEventListener("input", (e)=>{ state.q = e.target.value; render(); });
+
+    init();
+  </script>
+</body>
+</html>
